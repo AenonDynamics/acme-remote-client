@@ -5,8 +5,8 @@ try:
 except ImportError:
     from urllib2 import urlopen # Python 2
 
-#DEFAULT_CA = "https://acme-staging.api.letsencrypt.org"
-DEFAULT_CA = "https://acme-v01.api.letsencrypt.org"
+DEFAULT_CA = "https://acme-staging.api.letsencrypt.org"
+#DEFAULT_CA = "https://acme-v01.api.letsencrypt.org"
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
@@ -63,7 +63,7 @@ def get_crt(account_key, csr, acme_dir, log=LOGGER, CA=DEFAULT_CA):
 
     # find domains
     log.info("Parsing CSR...")
-    proc = subprocess.Popen(["openssl", "req", "-in", csr, "-noout", "-text"],
+    proc = subprocess.Popen(["openssl", "req", "-in", csr, "-noout", "-text", "-inform", "der"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if proc.returncode != 0:
@@ -111,6 +111,14 @@ def get_crt(account_key, csr, acme_dir, log=LOGGER, CA=DEFAULT_CA):
         with open(wellknown_path, "w") as wellknown_file:
             wellknown_file.write(keyauthorization)
 
+        # transfer challenge file
+        log.info("Transfering Challenge File...")
+        proc = subprocess.Popen(["ant", "-buildfile", "acme_challenge_upload.xml", "-Dtoken=" + token],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        if proc.returncode != 0:
+            raise IOError("Error during challenge file transfer {0}: {1}".format(csr, err))
+
         # check that the file is in place
         wellknown_url = "http://{0}/.well-known/acme-challenge/{1}".format(domain, token)
         try:
@@ -148,11 +156,11 @@ def get_crt(account_key, csr, acme_dir, log=LOGGER, CA=DEFAULT_CA):
                 raise ValueError("{0} challenge did not pass: {1}".format(
                     domain, challenge_status))
 
-    # get the new certificate
-    log.info("Signing certificate...")
-    proc = subprocess.Popen(["openssl", "req", "-in", csr, "-outform", "DER"],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    csr_der, err = proc.communicate()
+    # load CSR file (DER format required)
+    with open(csr, 'rb') as f:
+        csr_der = f.read()
+
+    # try to sign the request
     code, result = _send_signed_request(CA + "/acme/new-cert", {
         "resource": "new-cert",
         "csr": _b64(csr_der),
@@ -160,7 +168,7 @@ def get_crt(account_key, csr, acme_dir, log=LOGGER, CA=DEFAULT_CA):
     if code != 201:
         raise ValueError("Error signing certificate: {0} {1}".format(code, result))
 
-    # return signed certificate!
+    # return signed certificate as base64 (PEM) encoded file
     log.info("Certificate signed!")
     return """-----BEGIN CERTIFICATE-----\n{0}\n-----END CERTIFICATE-----\n""".format(
         "\n".join(textwrap.wrap(base64.b64encode(result).decode('utf8'), 64)))
@@ -173,16 +181,16 @@ def main(argv):
             """)
     )
     parser.add_argument("--account-key", required=True, help="path to your Let's Encrypt account private key")
-    parser.add_argument("--csr", required=True, help="path to your certificate signing request")
+    parser.add_argument("--csr", required=True, help="path to your certificate signing request in DER format!")
     parser.add_argument("--acme-dir", required=True, help="path to the .well-known/acme-challenge/ directory")
     parser.add_argument("--quiet", action="store_const", const=logging.ERROR, help="suppress output except for errors")
     parser.add_argument("--ca", default=DEFAULT_CA, help="certificate authority, default is Let's Encrypt")
     parser.add_argument("--out", required=True, help="the output filename")
-    
+
     args = parser.parse_args(argv)
     LOGGER.setLevel(args.quiet or LOGGER.level)
     signed_crt = get_crt(args.account_key, args.csr, args.acme_dir, log=LOGGER, CA=args.ca)
-    
+
     # write output file
     with open(args.out, "w") as cert_file:
         cert_file.write(signed_crt)
