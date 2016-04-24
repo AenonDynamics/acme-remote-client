@@ -169,18 +169,7 @@ def main(argv):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent("""\
-            This script automates the process of getting a signed TLS certificate from
-            Let's Encrypt using the ACME protocol. It will need to be run on your server
-            and have access to your private account key, so PLEASE READ THROUGH IT! It's
-            only ~200 lines, so it won't take long.
-
-            ===Example Usage===
-            python acme_tiny.py --account-key ./account.key --csr ./domain.csr --acme-dir /usr/share/nginx/html/.well-known/acme-challenge/ > signed.crt
-            ===================
-
-            ===Example Crontab Renewal (once per month)===
-            0 0 1 * * python /path/to/acme_tiny.py --account-key /path/to/account.key --csr /path/to/domain.csr --acme-dir /usr/share/nginx/html/.well-known/acme-challenge/ > /path/to/signed.crt 2>> /var/log/acme_tiny.log
-            ==============================================
+            @see https://github.com/AndiDittrich/acme-tiny
             """)
     )
     parser.add_argument("--account-key", required=True, help="path to your Let's Encrypt account private key")
