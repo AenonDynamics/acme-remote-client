@@ -11,7 +11,7 @@ Features
   * Ability to run on a dedicated Certificate Management Host
   * Upload hook to transfer the http-challenge-token
   * Domain Validation via [SimpleHTTP/http-01](https://letsencrypt.github.io/acme-spec/#simple-http) challenge
-  * Runs as normal user - not root/sudo required
+  * Runs as normal user - no root/sudo required
   * Easily to integrate into existing PKI management environments
 
 Audience
@@ -30,6 +30,15 @@ The webserver management is **on yours!** You have to create your CSR by yoursel
 Preface - Systems Architecture
 --------------------------------------
 
+This is a small example how the certificate management can be outsourced to an additional host.
+
+In this example, requests from the Let's Encrypt servers are redirected to a single Frontend-Webserver which serves your domain.
+The server will catch all requests to `mysite.com/.well-known/acme-challenge/*` and redirects them to `/var/www/acme-challenges`.
+This special folder is remote-accessible via SSH: domain validation tokens can be pushed by a trusted remote host!
+
+The big benefit of such a solution is, that you need only one (virtual) host which is responsible for your Certificate Management and deployment.
+It's especially required when using a bunch of webservers - such situation is no suitable to handle with the official Let's Encrypt client!
+
 ```
   Internet
       +
@@ -39,7 +48,7 @@ Preface - Systems Architecture
 +------------+        +------------------------------------------+
 |Firewall    |        |Frontend-Webserver (serves mysite.com)    |
 |IDPS        +------> |Requests to /.well-known/acme-challenge/* |
-|LoadBalancer|        |are redirected to /^ar/www/acme/          |
+|LoadBalancer|        |are redirected to /var/www/acme/          |
 +------------+        +------------------------------------------+
                                       ^
                                       |
