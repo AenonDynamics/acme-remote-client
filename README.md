@@ -27,15 +27,37 @@ The webserver management is **on yours!** You have to create your CSR by yoursel
 
 **If you are a beginner or don't understand what I just said, this script likely isn't for you! Please use the official [Let's Encrypt client](https://github.com/letsencrypt/letsencrypt)**
 
-Preface
+Preface - Systems Architecture
 --------------------------------------
 
-
+```
+  Internet
+      +
+      |
+      |
+      v
++------------+        +------------------------------------------+
+|Firewall    |        |Frontend-Webserver (serves mysite.com)    |
+|IDPS        +------> |Requests to /.well-known/acme-challenge/* |
+|LoadBalancer|        |are redirected to /^ar/www/acme/          |
++------------+        +------------------------------------------+
+                                      ^
+                                      |
+                                      |  Secure SSH Connection
+                                      |  to upload the challenge
+                                      |
+                     +----------------+-------------------------+
+                     |Cert Management Host (with acme-tiny.py)  |
+                     | - manage keys, csr, certs                |
+                     | - requests Let's Encrypt Cert            |
+                     | - Upload the Challenge                   |
+                     +------------------------------------------+
+```
 
 Usage
 --------------------------------------
 
-### Step 1: Create a Let's Encrypt account private key (if you haven't already)
+## Step 1: Create a Let's Encrypt account private key (if you haven't already)
 
 You must have a public key registered with Let's Encrypt and sign your requests with the corresponding private key.
 To accomplish this you need to initially create a key, that can be used by acme-tiny, to register a account for you and sign all following requests.
@@ -45,7 +67,7 @@ To accomplish this you need to initially create a key, that can be used by acme-
 openssl genrsa -out .letsencrypt/account.pem 4096
 ```
 
-### Step 2: Create or Provide CSR (Certificate Signing Request)
+## Step 2: Create or Provide CSR (Certificate Signing Request)
 
 I assume that you are familar with this procedure. The tool requires the CSR to be in **DER** format.
 
@@ -55,7 +77,7 @@ I assume that you are familar with this procedure. The tool requires the CSR to 
 openssl req -in mysite_com.csr -outform DER -out mysite_com.der
 ```
 
-### Step 3: Run the Tool
+## Step 3: Run the Tool
 
 #### On a single webserver ####
 
@@ -112,7 +134,7 @@ python acme_tiny.py \
   --token-upload ./token-upload.sh
 ```
 
-### Step 4: Install the certificates
+## Step 4: Install the certificates
 
 Finally you have to install the certificate manually on your Webserver.
 
