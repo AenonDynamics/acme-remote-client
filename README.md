@@ -86,7 +86,32 @@ I assume that you are familar with this procedure. The tool requires the CSR to 
 openssl req -in mysite_com.csr -outform DER -out mysite_com.der
 ```
 
-## Step 3: Run the Tool
+## Step 3: Prepare your Webserver
+
+If you plan to run the tool on a dedicated management host, you have to prepare your webserver to catch the validation requests.
+The SimpleHTTP validation of the ACME protocol is using the static path `yourdomain.com/.well-known/acme-challenge/*` to catch single files including a token.
+It is recommended to redirect this path to a **central location** on your webserver, e.g. `/var/www/acme-challenges`
+
+#### Lighttpd ####
+
+With lighttpd, you can use [mod_alias](https://redmine.lighttpd.net/projects/1/wiki/Docs_ModAlias) to redirect the request:
+
+```conf
+alias.url += ( "/.well-known/acme-challenge" => "/var/www/acme-challenge/" )
+```
+
+#### NGINX ####
+
+```conf
+server{
+  location '/.well-known/acme-challenge' {
+    default_type "text/plain";
+    root /var/www/acme-challenge;
+  }
+}
+```
+
+## Step 4: Run the Tool
 
 #### On a single webserver ####
 
@@ -95,7 +120,7 @@ openssl req -in mysite_com.csr -outform DER -out mysite_com.der
 **Request the Certificate**
 
 ```shell
-python acme_tiny.py \
+python acme_remote_client.py \
   --account-key ./.letsencrypt/account.pem \
   --csr ./requests/mysite_com.der \
   --acme-dir /var/www/acme-challenges \
@@ -135,7 +160,7 @@ esac
 **Request the Certificate**
 
 ```shell
-python acme_tiny.py \
+python acme_remote_client.py \
   --account-key ./.letsencrypt/account.pem \
   --csr ./requests/mysite_com.der \
   --acme-dir ./.challenges \
@@ -143,7 +168,7 @@ python acme_tiny.py \
   --token-upload ./token-upload.sh
 ```
 
-## Step 4: Install the certificates
+## Step 5: Install the certificates
 
 Finally you have to install the certificate manually on your Webserver.
 
