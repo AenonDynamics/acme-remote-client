@@ -10,18 +10,22 @@ Features
   * Intended to use with [Let's Encrypt](https://letsencrypt.org/)
   * Ability to run on a dedicated Certificate Management Host
   * Upload hook to transfer the http-challenge-token
-  * Domain Validation via [SimpleHTTP/http-01](https://letsencrypt.github.io/acme-spec/#simple-http) challenge+
+  * Domain Validation via [SimpleHTTP/http-01](https://letsencrypt.github.io/acme-spec/#simple-http) challenge
   * Runs as normal user - not root/sudo required
+  * Easily to integrate into existing PKI management environments
 
 Audience
 --------------------------------------
 
-This derived version is targeted to people who are familar with X509 certificate management (PKI), webserver administration (nginx, apache, lighttpd, ..) and server management.
+This derived version is targeted to people who are familar with **Let's Encrypt, X509 certificate management (PKI), webserver administration (nginx, apache, lighttpd, ..) and server management!**
 It's a small tool which can be integrated into your existing toolchain to manage X509 certificates.
-It does only talk to the [Let's Encrypt Authority](https://letsencrypt.org/) to validate your domain name and issue a certificate - no less, no more!
+It does only talk to the [Let's Encrypt Authority](https://letsencrypt.org/) to validate your domain name and issue a certificate.
+
 The webserver management is **on yours!** You have to create your CSR by yourself and install the generated certificates manually.
 
-**If you don't understand what I just said, this script likely isn't for you! Please use the official [Let's Encrypt client](https://github.com/letsencrypt/letsencrypt)**
+**If you plan to use this tool on a single server, please take a look on the [original vesion](https://github.com/diafygi/acme-tiny) before using this extended one!**
+
+**If you are a beginner or don't understand what I just said, this script likely isn't for you! Please use the official [Let's Encrypt client](https://github.com/letsencrypt/letsencrypt)**
 
 Preface
 --------------------------------------
@@ -36,6 +40,12 @@ Usage
 You must have a public key registered with Let's Encrypt and sign your requests with the corresponding private key.
 To accomplish this you need to initially create a key, that can be used by acme-tiny, to register a account for you and sign all following requests.
 
+```shell
+# create a new 4096bit RSA Keypair
+openssl genrsa -out .letsencrypt/account.pem 4096
+```
+
+### Step 2: Create or Provide CSR (Certificate Signing Request)
 
 License
 -------

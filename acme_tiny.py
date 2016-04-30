@@ -111,13 +111,14 @@ def get_crt(account_key, csr, acme_dir, log=LOGGER, CA=DEFAULT_CA, TokenUpload=N
         with open(wellknown_path, "w") as wellknown_file:
             wellknown_file.write(keyauthorization)
 
-        # transfer challenge file
-        log.info("Transfering Challenge File/Token...")
-        proc = subprocess.Popen(["sh", TokenUpload, "token", token],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = proc.communicate()
-        if proc.returncode != 0:
-            raise IOError("Error during challenge file transfer {0}: {1}".format(csr, err))
+        # transfer challenge file ?
+        if TokenUpload != None:
+            log.info("Transfering Challenge File/Token...")
+            proc = subprocess.Popen(["sh", TokenUpload, "token", token],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            if proc.returncode != 0:
+                raise IOError("Error during challenge file transfer {0}: {1}".format(csr, err))
 
         # check that the file is in place
         wellknown_url = "http://{0}/.well-known/acme-challenge/{1}".format(domain, token)
@@ -186,7 +187,7 @@ def main(argv):
     parser.add_argument("--quiet", action="store_const", const=logging.ERROR, help="suppress output except for errors")
     parser.add_argument("--ca", default=DEFAULT_CA, help="certificate authority, default is Let's Encrypt")
     parser.add_argument("--out", required=True, help="the output filename")
-    parser.add_argument("--token-upload", required=True, help="the token upload script")
+    parser.add_argument("--token-upload", help="the token upload script")
 
     args = parser.parse_args(argv)
     LOGGER.setLevel(args.quiet or LOGGER.level)
