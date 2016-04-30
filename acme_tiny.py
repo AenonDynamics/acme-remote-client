@@ -187,7 +187,7 @@ def main(argv):
     parser.add_argument("--quiet", action="store_const", const=logging.ERROR, help="suppress output except for errors")
     parser.add_argument("--ca", default=DEFAULT_CA, help="certificate authority, default is Let's Encrypt")
     parser.add_argument("--out", required=True, help="the output filename")
-    parser.add_argument("--token-upload", help="the token upload script")
+    parser.add_argument("--token-upload", default=None, help="the token upload script")
 
     args = parser.parse_args(argv)
     LOGGER.setLevel(args.quiet or LOGGER.level)
