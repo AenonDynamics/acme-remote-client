@@ -47,6 +47,15 @@ openssl genrsa -out .letsencrypt/account.pem 4096
 
 ### Step 2: Create or Provide CSR (Certificate Signing Request)
 
+I assume that you are familar with this procedure.
+
+### Step 3: Run the Tool
+
+
+### Step 4: Install the certificates
+
+Finally you have to install the certificate manually on your Webserver.
+
 License
 -------
 
