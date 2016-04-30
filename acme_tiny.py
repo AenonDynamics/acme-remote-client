@@ -178,7 +178,7 @@ def main(argv):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent("""\
-            @see https://github.com/AndiDittrich/acme-tiny
+            @see https://github.com/AndiDittrich/acme-remote-client
             """)
     )
     parser.add_argument("--account-key", required=True, help="path to your Let's Encrypt account private key")

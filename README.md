@@ -1,4 +1,4 @@
-acme-tiny
+acme-remote-client
 =====================================
 This is an extensions of [acme-tiny](https://github.com/diafygi/acme-tiny), a small and simple audtiable python script that you can use to issue and renew [Let's Encrypt](https://letsencrypt.org/) certificates.
 It can talk to any [ACME](https://letsencrypt.github.io/acme-spec/) based web services to issues [X509v3](https://en.wikipedia.org/wiki/X.509) certificates based on your CSR.
@@ -150,5 +150,6 @@ Finally you have to install the certificate manually on your Webserver.
 License
 -------
 
-**amce-tiny** is OpenSource and licensed under the Terms of [The MIT License (X11)](http://opensource.org/licenses/MIT). You're welcome to contribute!
+**acme-remote-client** is OpenSource and licensed under the Terms of [The MIT License (X11)](http://opensource.org/licenses/MIT). You're welcome to contribute!
+
 The original [acme-tiny](https://github.com/diafygi/acme-tiny) is created by [Daniel Roesler](https://github.com/diafygi) - Many thanks!
