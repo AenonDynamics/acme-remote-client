@@ -5,14 +5,14 @@ try:
 except ImportError:
     from urllib2 import urlopen # Python 2
 
-DEFAULT_CA = "https://acme-staging.api.letsencrypt.org"
-#DEFAULT_CA = "https://acme-v01.api.letsencrypt.org"
+#DEFAULT_CA = "https://acme-staging.api.letsencrypt.org"
+DEFAULT_CA = "https://acme-v01.api.letsencrypt.org"
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.INFO)
 
-def get_crt(account_key, csr, acme_dir, log=LOGGER, CA=DEFAULT_CA):
+def get_crt(account_key, csr, acme_dir, log=LOGGER, CA=DEFAULT_CA, TokenUpload=None):
     # helper function base64 encode for jose spec
     def _b64(b):
         return base64.urlsafe_b64encode(b).decode('utf8').replace("=", "")
@@ -112,8 +112,8 @@ def get_crt(account_key, csr, acme_dir, log=LOGGER, CA=DEFAULT_CA):
             wellknown_file.write(keyauthorization)
 
         # transfer challenge file
-        log.info("Transfering Challenge File...")
-        proc = subprocess.Popen(["ant", "-buildfile", "acme_challenge_upload.xml", "-Dtoken=" + token],
+        log.info("Transfering Challenge File/Token...")
+        proc = subprocess.Popen(["sh", TokenUpload, "token", token],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = proc.communicate()
         if proc.returncode != 0:
@@ -186,10 +186,11 @@ def main(argv):
     parser.add_argument("--quiet", action="store_const", const=logging.ERROR, help="suppress output except for errors")
     parser.add_argument("--ca", default=DEFAULT_CA, help="certificate authority, default is Let's Encrypt")
     parser.add_argument("--out", required=True, help="the output filename")
+    parser.add_argument("--token-upload", required=True, help="the token upload script")
 
     args = parser.parse_args(argv)
     LOGGER.setLevel(args.quiet or LOGGER.level)
-    signed_crt = get_crt(args.account_key, args.csr, args.acme_dir, log=LOGGER, CA=args.ca)
+    signed_crt = get_crt(args.account_key, args.csr, args.acme_dir, log=LOGGER, CA=args.ca, TokenUpload=args.token_upload)
 
     # write output file
     with open(args.out, "w") as cert_file:
