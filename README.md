@@ -49,7 +49,7 @@ openssl genrsa -out .letsencrypt/account.pem 4096
 
 I assume that you are familar with this procedure. The tool requires the CSR to be in **DER** format.
 
-#### Example: Convert PEM to DER
+**Example: Convert PEM to DER**
 
 ```shell
 openssl req -in mysite_com.csr -outform DER -out mysite_com.der
@@ -57,8 +57,59 @@ openssl req -in mysite_com.csr -outform DER -out mysite_com.der
 
 ### Step 3: Run the Tool
 
+#### On a single webserver ####
+
+**Assumption**: Your Webserver catches all http-challenges on the requested domains `/.well-known/acme-challenge/*` path and redirects them to `/var/www/acme-challenges`
+
+**Request the Certificate**
+
 ```shell
-python acme_tiny.py --account-key ./.letsencrypt/account.pem --csr ./requests/mysite_com.der --acme-dir ./.challenges --out ./certs/mysite_com.cert --token-upload ./$1/upload.sh
+python acme_tiny.py \
+  --account-key ./.letsencrypt/account.pem \
+  --csr ./requests/mysite_com.der \
+  --acme-dir /var/www/acme-challenges \
+  --out ./certs/mysite_com.cert
+```
+
+#### On a dedicated management server ####
+
+**Assumptions:**
+
+   * Your Remote Frontend Webserver catches all http-challenges `/.well-known/acme-challenge/*` and redirects them to `/var/www/acme-challenges`
+   * You've created an SSH account (key based auth) which have write access to remote-machines directory `/var/www/acme-challenges`
+
+**Token Upload Script Example**
+
+```shell
+#!/usr/bin/env bash
+
+# Upload ACME Token Challenge to Validation Host
+token_upload(){
+    scp -q \
+    -i your_server_ssh_key.pem \
+    .challenges/$1 \
+    tokenuser@yourserver:/var/www/acme-challenges/$1
+}
+
+# Command Dispatching - the first argument will always be "token"
+case "$1" in
+  token)
+    token_upload $2
+    ;;
+  *)
+    echo "Usage: $0 {token} [filename..]"
+esac
+```
+
+**Request the Certificate**
+
+```shell
+python acme_tiny.py \
+  --account-key ./.letsencrypt/account.pem \
+  --csr ./requests/mysite_com.der \
+  --acme-dir ./.challenges \
+  --out ./certs/mysite_com.cert \
+  --token-upload ./token-upload.sh
 ```
 
 ### Step 4: Install the certificates
