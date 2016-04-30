@@ -47,10 +47,19 @@ openssl genrsa -out .letsencrypt/account.pem 4096
 
 ### Step 2: Create or Provide CSR (Certificate Signing Request)
 
-I assume that you are familar with this procedure.
+I assume that you are familar with this procedure. The tool requires the CSR to be in **DER** format.
+
+#### Example: Convert PEM to DER
+
+```shell
+openssl req -in mysite_com.csr -outform DER -out mysite_com.der
+```
 
 ### Step 3: Run the Tool
 
+```shell
+python acme_tiny.py --account-key ./.letsencrypt/account.pem --csr ./requests/mysite_com.der --acme-dir ./.challenges --out ./certs/mysite_com.cert --token-upload ./$1/upload.sh
+```
 
 ### Step 4: Install the certificates
 
